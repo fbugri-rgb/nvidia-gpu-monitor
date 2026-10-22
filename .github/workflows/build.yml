@@ -45,3 +45,49 @@ jobs:
             build/dist/*
             build/jpackage/installer/*
           if-no-files-found: error
+
+  # Bij een versietag (bv. v1.1.0) worden alle builds als GitHub-release gepubliceerd
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Collect release files
+        run: |
+          mkdir release
+          find artifacts -type f \( -name '*.zip' -o -name '*.tar.gz' -o -name '*.deb' \) -exec cp {} release/ \;
+          # de .dmg wordt op een Apple Silicon-runner gebouwd
+          find artifacts -type f -name '*.dmg' -exec cp {} "release/NvidiaGpuMonitor-${GITHUB_REF_NAME#v}-macos-arm64.dmg" \;
+          # de jar is op elk platform dezelfde, één exemplaar volstaat
+          cp "$(find artifacts -type f -name '*.jar' | head -n 1)" release/
+          ls -l release
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > notes.md <<EOF
+          ## Downloads
+
+          | Platform | File | Needs Java? |
+          |---|---|---|
+          | Any OS | \`nvidia-gpu-monitor-${GITHUB_REF_NAME#v}.jar\`: run with \`java -jar\` | Java 21+ |
+          | Windows | \`NvidiaGpuMonitor-${GITHUB_REF_NAME#v}-windows.zip\`: unzip, run \`NvidiaGpuMonitor.exe\` | No |
+          | Linux | \`.deb\` (\`sudo apt install ./nvidiagpumonitor_*.deb\`) or \`-linux.tar.gz\` | No |
+          | macOS (Apple Silicon) | \`.dmg\` or \`-macos.tar.gz\`: unsigned, right-click → Open the first time | No |
+
+          Requires an NVIDIA graphics card with the NVIDIA driver (\`nvidia-smi\`).
+          Current macOS versions have no NVIDIA drivers, so on a Mac the app will usually report that \`nvidia-smi\` is not found.
+          EOF
+          gh release create "$GITHUB_REF_NAME" release/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "NVIDIA GPU Monitor $GITHUB_REF_NAME" \
+            --notes-file notes.md \
+            --generate-notes
