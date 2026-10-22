@@ -1,0 +1,129 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'be.kdg.java2'
+version = '1.1.0'
+
+def appName = 'NvidiaGpuMonitor'
+def appMainClass = 'nvidiamonitor.Main'
+
+// De broncode staat in src/ (zoals in het IntelliJ-project), niet in src/main/java
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src']
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+// Compileren voor Java 21, zodat de jar op elke Java 21+ draait
+tasks.withType(JavaCompile).configureEach {
+    options.release = 21
+    options.encoding = 'UTF-8'
+}
+
+application {
+    mainClass = appMainClass
+}
+
+// ---------- Uitvoerbare jar (Windows, Linux en macOS) ----------
+
+jar {
+    archiveBaseName = 'nvidia-gpu-monitor'
+    manifest {
+        attributes(
+                'Main-Class': appMainClass,
+                'Implementation-Title': 'NVIDIA GPU Monitor',
+                'Implementation-Version': project.version
+        )
+    }
+}
+
+// ---------- Native app met jpackage ----------
+// jpackage kan alleen een app bouwen voor het besturingssysteem waarop het draait.
+// Voor alle drie de platformen tegelijk: zie .github/workflows/build.yml
+
+def osName = System.getProperty('os.name').toLowerCase()
+def platform = osName.contains('win') ? 'windows' : osName.contains('mac') ? 'macos' : 'linux'
+def jpackage = "${System.getProperty('java.home')}/bin/jpackage"
+def jpackageDir = layout.buildDirectory.dir('jpackage')
+
+def jpackageArgs = { String type, File dest ->
+    def args = [jpackage,
+                '--type', type,
+                '--name', appName,
+                '--app-version', project.version,
+                '--vendor', 'KdG Java 2 groeiproject',
+                '--description', 'Monitor NVIDIA GPU usage, memory and temperature',
+                '--input', tasks.jar.destinationDirectory.get().asFile.path,
+                '--main-jar', tasks.jar.archiveFileName.get(),
+                '--main-class', appMainClass,
+                // alleen de Java-modules die de app nodig heeft → kleinere download
+                '--add-modules', 'java.desktop,java.prefs',
+                '--jlink-options', '--strip-debug --no-man-pages --no-header-files',
+                '--dest', dest.path]
+    if (platform == 'macos') {
+        args += ['--mac-package-identifier', 'be.kdg.nvidiamonitor']
+    }
+    if (type in ['msi', 'exe']) {
+        args += ['--win-menu', '--win-shortcut', '--win-dir-chooser', '--win-per-user-install']
+    }
+    if (type in ['deb', 'rpm']) {
+        args += ['--linux-shortcut', '--linux-menu-group', 'Utility']
+    }
+    return args
+}
+
+tasks.register('jpackageImage', Exec) {
+    group = 'distribution'
+    description = 'Builds a native app (with its own Java runtime) for the current OS.'
+    dependsOn tasks.jar
+    def dest = jpackageDir.get().dir(platform).asFile
+    inputs.file(tasks.jar.archiveFile)
+    outputs.dir(dest)
+    doFirst { delete dest } // jpackage stopt als de map al bestaat
+    commandLine jpackageArgs('app-image', dest)
+}
+
+tasks.register('packageNative', platform == 'windows' ? Zip : Tar) {
+    group = 'distribution'
+    description = 'Zips the native app: .zip on Windows, .tar.gz on Linux and macOS.'
+    dependsOn tasks.named('jpackageImage')
+    from jpackageDir.map { it.dir(platform) }
+    destinationDirectory = layout.buildDirectory.dir('dist')
+    if (platform == 'windows') {
+        archiveFileName = "${appName}-${project.version}-${platform}.zip"
+    } else {
+        archiveFileName = "${appName}-${project.version}-${platform}.tar.gz"
+        compression = Compression.GZIP
+    }
+}
+
+tasks.register('jpackageInstaller', Exec) {
+    group = 'distribution'
+    description = 'Builds an installer for the current OS. Choose with -Pinstaller=msi|exe|deb|rpm|dmg|pkg.'
+    dependsOn tasks.jar
+    def defaultType = [windows: 'msi', linux: 'deb', macos: 'dmg'][platform]
+    def type = project.findProperty('installer') ?: defaultType
+    def dest = jpackageDir.get().dir('installer').asFile
+    inputs.file(tasks.jar.archiveFile)
+    outputs.dir(dest)
+    doFirst { delete dest }
+    commandLine jpackageArgs(type, dest)
+}
+
+tasks.register('dist') {
+    group = 'distribution'
+    description = 'Builds the runnable jar and the native app for the current OS.'
+    dependsOn tasks.jar, tasks.named('packageNative')
+    doLast {
+        println "Jar:        ${tasks.jar.archiveFile.get().asFile}"
+        println "Native app: ${layout.buildDirectory.dir('dist').get().asFile}"
+    }
+}
