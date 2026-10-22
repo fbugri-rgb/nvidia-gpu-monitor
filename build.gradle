@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'be.kdg.java2'
-version = '1.1.0'
+version = '1.2.0'
 
 def appName = 'NvidiaGpuMonitor'
 def appMainClass = 'nvidiamonitor.Main'
@@ -14,6 +14,10 @@ sourceSets {
     main {
         java {
             srcDirs = ['src']
+        }
+        // het app-icoon, gegenereerd met: java tools/IconGenerator.java
+        resources {
+            srcDirs = ['resources']
         }
     }
 }
@@ -53,6 +57,8 @@ def osName = System.getProperty('os.name').toLowerCase()
 def platform = osName.contains('win') ? 'windows' : osName.contains('mac') ? 'macos' : 'linux'
 def jpackage = "${System.getProperty('java.home')}/bin/jpackage"
 def jpackageDir = layout.buildDirectory.dir('jpackage')
+// elk besturingssysteem wil een ander formaat voor het icoon
+def appIcon = file("packaging/${appName}.${[windows: 'ico', linux: 'png', macos: 'icns'][platform]}")
 
 def jpackageArgs = { String type, File dest ->
     def args = [jpackage,
@@ -64,6 +70,7 @@ def jpackageArgs = { String type, File dest ->
                 '--input', tasks.jar.destinationDirectory.get().asFile.path,
                 '--main-jar', tasks.jar.archiveFileName.get(),
                 '--main-class', appMainClass,
+                '--icon', appIcon.path,
                 // alleen de Java-modules die de app nodig heeft → kleinere download
                 '--add-modules', 'java.desktop,java.prefs',
                 '--jlink-options', '--strip-debug --no-man-pages --no-header-files',
@@ -86,6 +93,7 @@ tasks.register('jpackageImage', Exec) {
     dependsOn tasks.jar
     def dest = jpackageDir.get().dir(platform).asFile
     inputs.file(tasks.jar.archiveFile)
+    inputs.file(appIcon)
     outputs.dir(dest)
     doFirst { delete dest } // jpackage stopt als de map al bestaat
     commandLine jpackageArgs('app-image', dest)
@@ -113,6 +121,7 @@ tasks.register('jpackageInstaller', Exec) {
     def type = project.findProperty('installer') ?: defaultType
     def dest = jpackageDir.get().dir('installer').asFile
     inputs.file(tasks.jar.archiveFile)
+    inputs.file(appIcon)
     outputs.dir(dest)
     doFirst { delete dest }
     commandLine jpackageArgs(type, dest)

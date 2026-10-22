@@ -45,6 +45,9 @@ public class AppController {
     public AppController() {
         main = new MainWindow(this);
         widget = new WidgetWindow(this);
+        AppIcon.apply(main);
+        AppIcon.apply(widget);
+        AppIcon.applyToTaskbar();
         monitor.addListener(this::onStats);
         monitor.addErrorListener(message -> {
             main.showError(message);

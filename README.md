@@ -8,11 +8,11 @@ Built in Java Swing as part of the Java 2 groeiproject.
 
 | Platform | Download | Then |
 |---|---|---|
-| **Windows** | [NvidiaGpuMonitor-1.1.0-windows.zip](https://github.com/fbugri-rgb/nvidia-gpu-monitor/releases/latest/download/NvidiaGpuMonitor-1.1.0-windows.zip) | Unzip and run `NvidiaGpuMonitor.exe`. No Java needed. |
-| **Linux** (Debian/Ubuntu) | [nvidiagpumonitor_1.1.0_amd64.deb](https://github.com/fbugri-rgb/nvidia-gpu-monitor/releases/latest/download/nvidiagpumonitor_1.1.0_amd64.deb) | `sudo apt install ./nvidiagpumonitor_1.1.0_amd64.deb` |
-| **Linux** (other) | [NvidiaGpuMonitor-1.1.0-linux.tar.gz](https://github.com/fbugri-rgb/nvidia-gpu-monitor/releases/latest/download/NvidiaGpuMonitor-1.1.0-linux.tar.gz) | Extract and run `NvidiaGpuMonitor/bin/NvidiaGpuMonitor` |
-| **macOS** (Apple Silicon) | [NvidiaGpuMonitor-1.1.0-macos-arm64.dmg](https://github.com/fbugri-rgb/nvidia-gpu-monitor/releases/latest/download/NvidiaGpuMonitor-1.1.0-macos-arm64.dmg) | Open it, drag the app to Applications, then right-click it and choose **Open** the first time |
-| **Any OS with Java 21+** | [nvidia-gpu-monitor-1.1.0.jar](https://github.com/fbugri-rgb/nvidia-gpu-monitor/releases/latest/download/nvidia-gpu-monitor-1.1.0.jar) | Double-click it, or run `java -jar nvidia-gpu-monitor-1.1.0.jar` |
+| **Windows** | [NvidiaGpuMonitor-1.2.0-windows.zip](https://github.com/fbugri-rgb/nvidia-gpu-monitor/releases/latest/download/NvidiaGpuMonitor-1.2.0-windows.zip) | Unzip and run `NvidiaGpuMonitor.exe`. No Java needed. |
+| **Linux** (Debian/Ubuntu) | [nvidiagpumonitor_1.2.0_amd64.deb](https://github.com/fbugri-rgb/nvidia-gpu-monitor/releases/latest/download/nvidiagpumonitor_1.2.0_amd64.deb) | `sudo apt install ./nvidiagpumonitor_1.2.0_amd64.deb` |
+| **Linux** (other) | [NvidiaGpuMonitor-1.2.0-linux.tar.gz](https://github.com/fbugri-rgb/nvidia-gpu-monitor/releases/latest/download/NvidiaGpuMonitor-1.2.0-linux.tar.gz) | Extract and run `NvidiaGpuMonitor/bin/NvidiaGpuMonitor` |
+| **macOS** (Apple Silicon) | [NvidiaGpuMonitor-1.2.0-macos-arm64.dmg](https://github.com/fbugri-rgb/nvidia-gpu-monitor/releases/latest/download/NvidiaGpuMonitor-1.2.0-macos-arm64.dmg) | Open it, drag the app to Applications, then right-click it and choose **Open** the first time |
+| **Any OS with Java 21+** | [nvidia-gpu-monitor-1.2.0.jar](https://github.com/fbugri-rgb/nvidia-gpu-monitor/releases/latest/download/nvidia-gpu-monitor-1.2.0.jar) | Double-click it, or run `java -jar nvidia-gpu-monitor-1.2.0.jar` |
 
 All files and release notes: [**Releases**](https://github.com/fbugri-rgb/nvidia-gpu-monitor/releases/latest).
 You need an NVIDIA graphics card with the NVIDIA driver installed (see [Requirements](#requirements)).
@@ -69,8 +69,8 @@ You need an NVIDIA graphics card with the NVIDIA driver installed (see [Requirem
 ### Option 1: the jar (any OS with Java 21+)
 
 ```bash
-java -jar nvidia-gpu-monitor-1.1.0.jar            # main window
-java -jar nvidia-gpu-monitor-1.1.0.jar --widget   # widget only
+java -jar nvidia-gpu-monitor-1.2.0.jar            # main window
+java -jar nvidia-gpu-monitor-1.2.0.jar --widget   # widget only
 ```
 
 On Windows you can also double-click the `.jar`.
@@ -79,9 +79,9 @@ On Windows you can also double-click the `.jar`.
 
 | OS | File | How to start |
 |---|---|---|
-| Windows | `NvidiaGpuMonitor-1.1.0-windows.zip` | Unzip and run `NvidiaGpuMonitor\NvidiaGpuMonitor.exe` |
-| Linux | `NvidiaGpuMonitor-1.1.0-linux.tar.gz` or `.deb` | `tar xzf …` then `NvidiaGpuMonitor/bin/NvidiaGpuMonitor`, or `sudo apt install ./nvidiagpumonitor_*.deb` |
-| macOS | `NvidiaGpuMonitor-1.1.0-macos.tar.gz` or `.dmg` | Open `NvidiaGpuMonitor.app` |
+| Windows | `NvidiaGpuMonitor-1.2.0-windows.zip` | Unzip and run `NvidiaGpuMonitor\NvidiaGpuMonitor.exe` |
+| Linux | `NvidiaGpuMonitor-1.2.0-linux.tar.gz` or `.deb` | `tar xzf …` then `NvidiaGpuMonitor/bin/NvidiaGpuMonitor`, or `sudo apt install ./nvidiagpumonitor_*.deb` |
+| macOS | `NvidiaGpuMonitor-1.2.0-macos.tar.gz` or `.dmg` | Open `NvidiaGpuMonitor.app` |
 
 The macOS app is not signed. The first time, right-click the app and choose **Open**, or run
 `xattr -dr com.apple.quarantine NvidiaGpuMonitor.app`.
@@ -97,8 +97,8 @@ The project uses Gradle. The wrapper is included, so you don't need to install G
 
 | Task | Output |
 |---|---|
-| `./gradlew jar` | `build/libs/nvidia-gpu-monitor-1.1.0.jar` (runs on every OS) |
-| `./gradlew packageNative` | `build/dist/NvidiaGpuMonitor-1.1.0-<os>.zip` or `.tar.gz` (app with its own Java runtime) |
+| `./gradlew jar` | `build/libs/nvidia-gpu-monitor-1.2.0.jar` (runs on every OS) |
+| `./gradlew packageNative` | `build/dist/NvidiaGpuMonitor-1.2.0-<os>.zip` or `.tar.gz` (app with its own Java runtime) |
 | `./gradlew jpackageInstaller` | `build/jpackage/installer/` (installer for the current OS) |
 | `./gradlew dist` | `jar` + `packageNative` |
 
