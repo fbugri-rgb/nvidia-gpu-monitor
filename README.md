@@ -4,6 +4,19 @@ A small desktop app that shows what your NVIDIA graphics card is doing, like the
 
 Built in Java Swing as part of the Java 2 groeiproject.
 
+## ⬇️ Download
+
+| Platform | Download | Then |
+|---|---|---|
+| **Windows** | [NvidiaGpuMonitor-1.1.0-windows.zip](https://github.com/fbugri-rgb/nvidia-gpu-monitor/releases/latest/download/NvidiaGpuMonitor-1.1.0-windows.zip) | Unzip and run `NvidiaGpuMonitor.exe`. No Java needed. |
+| **Linux** (Debian/Ubuntu) | [nvidiagpumonitor_1.1.0_amd64.deb](https://github.com/fbugri-rgb/nvidia-gpu-monitor/releases/latest/download/nvidiagpumonitor_1.1.0_amd64.deb) | `sudo apt install ./nvidiagpumonitor_1.1.0_amd64.deb` |
+| **Linux** (other) | [NvidiaGpuMonitor-1.1.0-linux.tar.gz](https://github.com/fbugri-rgb/nvidia-gpu-monitor/releases/latest/download/NvidiaGpuMonitor-1.1.0-linux.tar.gz) | Extract and run `NvidiaGpuMonitor/bin/NvidiaGpuMonitor` |
+| **macOS** (Apple Silicon) | [NvidiaGpuMonitor-1.1.0-macos-arm64.dmg](https://github.com/fbugri-rgb/nvidia-gpu-monitor/releases/latest/download/NvidiaGpuMonitor-1.1.0-macos-arm64.dmg) | Open it, drag the app to Applications, then right-click it and choose **Open** the first time |
+| **Any OS with Java 21+** | [nvidia-gpu-monitor-1.1.0.jar](https://github.com/fbugri-rgb/nvidia-gpu-monitor/releases/latest/download/nvidia-gpu-monitor-1.1.0.jar) | Double-click it, or run `java -jar nvidia-gpu-monitor-1.1.0.jar` |
+
+All files and release notes: [**Releases**](https://github.com/fbugri-rgb/nvidia-gpu-monitor/releases/latest).
+You need an NVIDIA graphics card with the NVIDIA driver installed (see [Requirements](#requirements)).
+
 ## Features
 
 - **Live graphs** of the last 60 seconds for GPU usage, video memory, temperature and power draw. It also shows the core clock, memory clock and fan speed.
