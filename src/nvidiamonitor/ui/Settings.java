@@ -1,6 +1,7 @@
 package nvidiamonitor.ui;
 
 import nvidiamonitor.model.Meter;
+import nvidiamonitor.service.Platform;
 
 import java.awt.Point;
 import java.util.prefs.Preferences;
@@ -14,6 +15,9 @@ public final class Settings {
 
     /** Waarde van {@link #gpuSelection()} wanneer alle kaarten getoond worden. */
     public static final int ALL_GPUS = -1;
+
+    /** Startoptie om de doorzichtige achtergrond aan of uit te zetten, bv. {@code -Dnvidiamonitor.transparent=false}. */
+    public static final String TRANSPARENT_OPTION = "nvidiamonitor.transparent";
 
     private Settings() {
     }
@@ -32,6 +36,24 @@ public final class Settings {
 
     public static void saveBackground(String window, float value) {
         PREFS.putFloat(window + ".background", value);
+    }
+
+    /**
+     * Doorzichtige achtergrond voor beide vensters. De startoptie {@code -Dnvidiamonitor.transparent=true|false}
+     * gaat voor op de opgeslagen keuze. Standaard uit op Linux: daar flikkeren doorzichtige vensters,
+     * omdat het venster eerst leeggemaakt en dan pas opnieuw getekend wordt.
+     */
+    public static boolean transparentBackground() {
+        String option = System.getProperty(TRANSPARENT_OPTION);
+        if (option != null) {
+            return Boolean.parseBoolean(option);
+        }
+        return PREFS.getBoolean("transparentBackground", Platform.current() != Platform.LINUX);
+    }
+
+    public static void transparentBackground(boolean value) {
+        PREFS.putBoolean("transparentBackground", value);
+        System.clearProperty(TRANSPARENT_OPTION); // de keuze in het menu geldt vanaf nu, ook met de startoptie
     }
 
     public static boolean alwaysOnTop(String window, boolean defaultValue) {

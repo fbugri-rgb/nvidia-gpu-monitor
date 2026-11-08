@@ -41,7 +41,7 @@ public class WidgetWindow extends JWindow {
 
     public WidgetWindow(AppController app) {
         setType(Type.UTILITY); // geen knop in de taakbalk
-        style = new WindowStyle(this, "widget", 0.85f, true);
+        style = new WindowStyle(this, "widget", Theme.TITLE_BAR, 0.85f, true);
 
         content = new JPanel() {
             @Override
@@ -50,7 +50,8 @@ public class WidgetWindow extends JWindow {
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(style.paint(Theme.TITLE_BAR, 235));
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
-                g2.setColor(Theme.withAlpha(Theme.NVIDIA_GREEN, Math.max(30, Math.round(style.background() * 120))));
+                float background = style.isTransparentBackground() ? style.background() : 1f;
+                g2.setColor(Theme.withAlpha(Theme.NVIDIA_GREEN, Math.max(30, Math.round(background * 120))));
                 g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 18, 18);
                 g2.dispose();
             }

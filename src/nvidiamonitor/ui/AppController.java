@@ -122,6 +122,22 @@ public class AppController {
         main.setVisible(false);
     }
 
+    /**
+     * Zet de doorzichtige achtergrond van beide vensters aan of uit. Elk getoond venster wordt even gesloten
+     * en opnieuw getoond, omdat Java (op Linux) alleen bij het aanmaken kiest of een venster doorzichtig kan zijn.
+     */
+    private void setTransparentBackground(boolean on) {
+        Settings.transparentBackground(on);
+        for (Window window : List.of(main, widget)) {
+            boolean visible = window.isVisible();
+            window.dispose();
+            (window == main ? main.style() : widget.style()).applyTransparentBackground();
+            if (visible) {
+                window.setVisible(true);
+            }
+        }
+    }
+
     public void exit() {
         monitor.stop();
         System.exit(0);
@@ -162,8 +178,19 @@ public class AppController {
         menu.add(hardwareMenu());
 
         menu.addSeparator();
-        menu.add(sliderItem("Window opacity", 30, style.opacity(), style.supportsOpacity(), style::setOpacity));
-        menu.add(sliderItem("Background", 5, style.background(), style.supportsBackground(), style::setBackground));
+        menu.add(sliderItem("Window opacity", 30, style.opacity(), style.supportsOpacity(),
+                "Not supported on this system", style::setOpacity));
+        menu.add(sliderItem("Background", 5, style.background(), style.isTransparentBackground(),
+                style.supportsTransparentBackground() ? "Turn on \"Transparent background\" first"
+                        : "Not supported on this system",
+                style::setBackground));
+        JCheckBoxMenuItem transparent = new JCheckBoxMenuItem("Transparent background", style.isTransparentBackground());
+        transparent.setEnabled(style.supportsTransparentBackground());
+        transparent.setToolTipText(style.supportsTransparentBackground()
+                ? "See-through background for both windows (may flicker on Linux)"
+                : "Not supported on this system");
+        transparent.addActionListener(e -> setTransparentBackground(transparent.isSelected()));
+        menu.add(transparent);
         JCheckBoxMenuItem onTop = new JCheckBoxMenuItem("Always on top", window.isAlwaysOnTop());
         onTop.addActionListener(e -> style.setAlwaysOnTop(onTop.isSelected()));
         menu.add(onTop);
@@ -237,7 +264,8 @@ public class AppController {
     }
 
     /** Een schuifbalk met label en percentage, rechtstreeks in het menu. */
-    private static JComponent sliderItem(String text, int min, float value, boolean enabled, Consumer<Float> onChange) {
+    private static JComponent sliderItem(String text, int min, float value, boolean enabled, String disabledTip,
+                                         Consumer<Float> onChange) {
         JLabel label = new JLabel(text);
         label.setPreferredSize(new Dimension(100, 20));
         JLabel percent = new JLabel(Math.round(value * 100) + " %");
@@ -252,7 +280,7 @@ public class AppController {
             onChange.accept(slider.getValue() / 100f);
         });
         if (!enabled) {
-            slider.setToolTipText("Not supported on this system");
+            slider.setToolTipText(disabledTip);
         }
 
         JPanel panel = new JPanel(new BorderLayout(6, 0));

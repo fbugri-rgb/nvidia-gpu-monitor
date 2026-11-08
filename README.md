@@ -25,7 +25,7 @@ You need an NVIDIA graphics card with the NVIDIA driver installed (see [Requirem
 - **Floating widget:** a small window that stays on top of other windows and has no taskbar button.
 - **Transparency** for each window:
   - *Window opacity* makes the whole window see-through, text included.
-  - *Background* makes only the background see-through, so the text and graphs stay sharp.
+  - *Background* makes only the background see-through, so the text and graphs stay sharp. This needs *Transparent background* to be on. It's on by default on Windows and macOS, and off on Linux, where see-through windows flicker each time the values update. To set it at startup instead, run the jar with `java -Dnvidiamonitor.transparent=true` or `=false`.
 - **Always on top**, **show/hide individual meters**, **start at login**.
 - Remembers your settings: transparency, hidden meters, chosen GPU, compact view and widget position.
 - **Lets Optimus laptops sleep:** when no app uses the NVIDIA GPU, the monitor stops querying it, so the GPU can power off (0 W) instead of being kept awake at 25–30 W. It resumes automatically as soon as another app wakes the GPU.
@@ -49,6 +49,7 @@ You need an NVIDIA graphics card with the NVIDIA driver installed (see [Requirem
 - Show / hide meters: GPU usage, Dedicated memory, Temperature, Power draw
 - Hardware: All GPUs, GPU 0, GPU 1, …
 - Window opacity and Background sliders
+- Transparent background (on/off for both windows)
 - Always on top
 - Start with Windows (*Start at login* on Linux and macOS)
 - About
@@ -62,7 +63,7 @@ You need an NVIDIA graphics card with the NVIDIA driver installed (see [Requirem
 | OS | Status |
 |---|---|
 | Windows 10/11 | Fully supported (developed and tested here) |
-| Linux | Supported with the proprietary NVIDIA driver (`nvidia-smi` must work in a terminal). Transparency needs a compositing desktop such as GNOME or KDE. |
+| Linux | Supported with the proprietary NVIDIA driver (`nvidia-smi` must work in a terminal). Transparency needs a compositing desktop such as GNOME or KDE. *Transparent background* is off by default, because it makes the windows flicker. |
 | macOS | The app runs, but NVIDIA has no drivers for current macOS versions. On a Mac the app will usually show *"nvidia-smi not found"*. |
 
 ## Download and run

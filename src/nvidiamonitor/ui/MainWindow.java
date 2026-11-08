@@ -45,7 +45,7 @@ public class MainWindow extends JFrame {
         super("NVIDIA GPU Monitor");
         setUndecorated(true); // nodig voor transparantie
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-        style = new WindowStyle(this, "main", 1f, false);
+        style = new WindowStyle(this, "main", Theme.BACKGROUND, 1f, false);
 
         titleBar = new TitleBar(style, "NVIDIA GPU Monitor");
         titleBar.addButton("☰", "Menu", Theme.GRID, e -> {
