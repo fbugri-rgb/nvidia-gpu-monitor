@@ -20,6 +20,15 @@ sourceSets {
             srcDirs = ['resources']
         }
     }
+    // Klassen die de Foreign Function & Memory API gebruiken (definitief sinds Java 22).
+    // Ze komen in META-INF/versions/22 van een multi-release jar: Java 22+ laadt ze in de plaats van
+    // de gelijknamige klassen uit src/, en Java 21 negeert ze.
+    java22 {
+        java {
+            srcDirs = ['src-java22']
+        }
+        compileClasspath += main.output
+    }
 }
 
 repositories {
@@ -28,7 +37,7 @@ repositories {
 
 // Compileren voor Java 21, zodat de jar op elke Java 21+ draait
 tasks.withType(JavaCompile).configureEach {
-    options.release = 21
+    options.release = name == 'compileJava22Java' ? 22 : 21
     options.encoding = 'UTF-8'
 }
 
@@ -43,9 +52,15 @@ jar {
     manifest {
         attributes(
                 'Main-Class': appMainClass,
+                'Multi-Release': 'true',
+                // de D-state van de kaart wordt via CfgMgr32.dll gelezen (zonder waarschuwing op Java 22+)
+                'Enable-Native-Access': 'ALL-UNNAMED',
                 'Implementation-Title': 'NVIDIA GPU Monitor',
                 'Implementation-Version': project.version
         )
+    }
+    into('META-INF/versions/22') {
+        from sourceSets.java22.output
     }
 }
 
@@ -73,6 +88,7 @@ def jpackageArgs = { String type, File dest ->
                 '--icon', appIcon.path,
                 // alleen de Java-modules die de app nodig heeft → kleinere download
                 '--add-modules', 'java.desktop,java.prefs',
+                '--java-options', '--enable-native-access=ALL-UNNAMED',
                 '--jlink-options', '--strip-debug --no-man-pages --no-header-files',
                 '--dest', dest.path]
     if (platform == 'macos') {

@@ -84,8 +84,15 @@ class GpuSection extends JPanel {
         nameLabel.setText(multipleGpus ? "GPU " + s.index() + "  ·  " + s.name() : s.name());
         driverLabel.setText("Driver " + s.driverVersion());
 
-        cards.get(Meter.GPU).update(s.gpuUsage(), String.format("%.0f %%", s.gpuUsage()),
-                String.format("Memory controller load %.0f %%", s.memoryUsage()));
+        MetricCard gpu = cards.get(Meter.GPU);
+        if (s.asleep()) {
+            gpu.update(0, "0 %", "GPU asleep – not in use by any app");
+        } else if (GpuStats.known(s.gpuUsage())) {
+            gpu.update(s.gpuUsage(), String.format("%.0f %%", s.gpuUsage()),
+                    String.format("Memory controller load %.0f %%", s.memoryUsage()));
+        } else {
+            gpu.update(0, "N/A", "Load not reported by driver");
+        }
 
         MetricCard memory = cards.get(Meter.MEMORY);
         memory.graph().setMax(s.memoryTotalMb());
@@ -95,11 +102,14 @@ class GpuSection extends JPanel {
                 String.format("%.1f %% in use", s.memoryPercent()));
 
         MetricCard temp = cards.get(Meter.TEMPERATURE);
-        temp.update(s.temperature(), String.format("%.0f °C", s.temperature()), temperatureHint(s.temperature()));
+        temp.update(s.temperature(), String.format("%.0f °C", s.temperature()),
+                s.asleep() ? "Last reading before sleep" : temperatureHint(s.temperature()));
         temp.setValueColor(Theme.temperatureColor(s.temperature()));
 
         MetricCard power = cards.get(Meter.POWER);
-        if (GpuStats.known(s.powerDraw())) {
+        if (s.asleep()) {
+            power.update(0, "0 W", "GPU asleep (D3)");
+        } else if (GpuStats.known(s.powerDraw())) {
             boolean limitKnown = GpuStats.known(s.powerLimit());
             power.graph().setMax(limitKnown ? s.powerLimit() : 175);
             power.update(s.powerDraw(), String.format(compact ? "%.0f W" : "%.1f W", s.powerDraw()),

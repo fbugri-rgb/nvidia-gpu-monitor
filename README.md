@@ -28,6 +28,7 @@ You need an NVIDIA graphics card with the NVIDIA driver installed (see [Requirem
   - *Background* makes only the background see-through, so the text and graphs stay sharp.
 - **Always on top**, **show/hide individual meters**, **start at login**.
 - Remembers your settings: transparency, hidden meters, chosen GPU, compact view and widget position.
+- **Lets Optimus laptops sleep:** when no app uses the NVIDIA GPU, the monitor stops querying it, so the GPU can power off (0 W) instead of being kept awake at 25–30 W. It resumes automatically as soon as another app wakes the GPU.
 
 ### Controls
 
@@ -127,8 +128,11 @@ src/nvidiamonitor/
 │   ├── GpuStats.java          one reading of one graphics card (record)
 │   └── Meter.java             the meters you can show or hide
 ├── service/
-│   ├── NvidiaSmiReader.java   runs nvidia-smi and parses its CSV output
-│   ├── GpuMonitor.java        polls every second on a background thread
+│   ├── NvidiaSmiReader.java   one long-running nvidia-smi (--loop-ms) and parses its CSV output
+│   ├── GpuMonitor.java        active/sleep logic on a background thread
+│   ├── GpuPowerState.java     reads the GPU's PCIe power state (D0/D3) without waking it
+│   ├── LinuxPowerState.java   … via /sys/bus/pci/devices/*/power_state
+│   ├── WindowsPowerState.java … Java 21 fallback (no sleep mode)
 │   ├── AutoStart.java         start at login (registry / .desktop / LaunchAgent)
 │   └── Platform.java          Windows, Linux or macOS
 └── ui/
@@ -143,16 +147,23 @@ src/nvidiamonitor/
     ├── WindowMouse.java       drag, right-click and double-click
     ├── Settings.java          saved settings (java.util.prefs)
     └── Theme.java             colours and fonts
+
+src-java22/nvidiamonitor/service/
+└── WindowsPowerState.java     … via CfgMgr32.dll (Foreign Function & Memory API, Java 22+)
 ```
 
 ### How it works
 
-Every second, `GpuMonitor` runs this command on a background thread:
+`GpuMonitor` keeps one `nvidia-smi` process running, which prints a line per card every second:
 
 ```
-nvidia-smi --query-gpu=index,name,driver_version,utilization.gpu,... --format=csv,noheader,nounits
+nvidia-smi --query-gpu=index,name,driver_version,utilization.gpu,... --format=csv,noheader,nounits --loop-ms=1000
 ```
 
 Each line of output becomes a `GpuStats` record. The listeners in the UI then receive the new values on the Swing thread.
+
+**Sleep mode (Optimus laptops).** Every `nvidia-smi` query wakes a sleeping GPU, and it stays awake in its high-performance state for a few seconds. Polling every second would therefore keep it awake forever. When all cards report 0 % load and 0 MB used memory for 5 readings in a row, `GpuMonitor` stops `nvidia-smi` and the OS powers the GPU off (D3). After that it only reads the power state the OS keeps for the device: `DEVPKEY_Device_PowerData` on Windows, `power_state` in sysfs on Linux. That read never wakes the card. Meanwhile the UI shows 0 W and the last temperature, like Task Manager does. When another app wakes the GPU (D0), `nvidia-smi` starts again. The first power reading after a wake-up is discarded, because the sensor often reports nonsense at that moment (e.g. 751 W).
+
+On Windows, the power state is read through the Foreign Function & Memory API, which became final in Java 22. The jar is a multi-release jar: on Java 22+ (and in the native app) it uses `src-java22/`, while on Java 21 the app runs without sleep mode. Desktop GPUs that drive a display always have memory in use, so they never enter sleep mode.
 
 Windows only allow transparency when they have no regular title bar and border. That's why both windows draw their own title bar and background.
