@@ -105,7 +105,7 @@ The project uses Gradle. The wrapper is included, so you don't need to install G
 
 Installer types: `-Pinstaller=msi|exe` (Windows, needs the [WiX Toolset](https://wixtoolset.org/)), `deb|rpm` (Linux) and `dmg|pkg` (macOS).
 
-A JDK 21 or newer is needed to build; it must include `jpackage`, which every standard JDK does.
+A JDK 22 or newer is needed to build, because the classes in `src-java22/` are compiled for Java 22. The jar it produces still runs on Java 21. The JDK must include `jpackage`, which every standard JDK does.
 
 ### Windows, Linux and macOS builds
 
