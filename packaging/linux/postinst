@@ -1,0 +1,52 @@
+#!/bin/sh
+# postinst script for APPLICATION_PACKAGE
+#
+# Copy of jpackage's own template (JDK 25), with one change: adding the menu shortcut may fail
+# without stopping the installation. On a system without a desktop (WSL, servers) /etc/xdg/menus
+# does not exist, xdg-desktop-menu then exits with an error and the package stayed half-configured.
+# jpackage fills in the words in capitals (DESKTOP_COMMANDS_INSTALL, ...) while building the .deb.
+#
+# see: dh_installdeb(1)
+
+set -e
+
+# summary of how this script can be called:
+#        * <postinst> `configure' <most-recently-configured-version>
+#        * <old-postinst> `abort-upgrade' <new version>
+#        * <conflictor's-postinst> `abort-remove' `in-favour' <package>
+#          <new-version>
+#        * <postinst> `abort-remove'
+#        * <deconfigured's-postinst> `abort-deconfigure' `in-favour'
+#          <failed-install-package> <version> `removing'
+#          <conflicting-package> <version>
+# for details, see https://www.debian.org/doc/debian-policy/ or
+# the debian-policy package
+
+package_type=deb
+LAUNCHER_AS_SERVICE_SCRIPTS
+
+install_menu_shortcut ()
+{
+  :
+DESKTOP_COMMANDS_INSTALL
+}
+
+case "$1" in
+    configure)
+        if ! install_menu_shortcut; then
+            echo "Note: no menu shortcut was added, because this system has no desktop menu." >&2
+            echo "The app is installed; start it with /opt/APPLICATION_PACKAGE/bin/NvidiaGpuMonitor" >&2
+        fi
+LAUNCHER_AS_SERVICE_COMMANDS_INSTALL
+    ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+    ;;
+
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+exit 0

@@ -1,0 +1,51 @@
+#!/bin/sh
+# prerm script for APPLICATION_PACKAGE
+#
+# Copy of jpackage's own template (JDK 25), with one change: removing the menu shortcut may fail
+# without stopping the removal. On a system without a desktop (WSL, servers) /etc/xdg/menus
+# does not exist and xdg-desktop-menu exits with an error, so the package could not be removed.
+# jpackage fills in the words in capitals (DESKTOP_COMMANDS_UNINSTALL, ...) while building the .deb.
+#
+# see: dh_installdeb(1)
+
+set -e
+
+# summary of how this script can be called:
+#        * <prerm> `remove'
+#        * <old-prerm> `upgrade' <new-version>
+#        * <new-prerm> `failed-upgrade' <old-version>
+#        * <conflictor's-prerm> `remove' `in-favour' <package> <new-version>
+#        * <deconfigured's-prerm> `deconfigure' `in-favour'
+#          <package-being-installed> <version> `removing'
+#          <conflicting-package> <version>
+# for details, see https://www.debian.org/doc/debian-policy/ or
+# the debian-policy package
+
+
+package_type=deb
+COMMON_SCRIPTS
+DESKTOP_SCRIPTS
+LAUNCHER_AS_SERVICE_SCRIPTS
+
+uninstall_menu_shortcut ()
+{
+  :
+DESKTOP_COMMANDS_UNINSTALL
+}
+
+case "$1" in
+    remove|upgrade|deconfigure)
+        uninstall_menu_shortcut || echo "Note: no menu shortcut to remove (this system has no desktop menu)." >&2
+LAUNCHER_AS_SERVICE_COMMANDS_UNINSTALL
+    ;;
+
+    failed-upgrade)
+    ;;
+
+    *)
+        echo "prerm called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+exit 0
